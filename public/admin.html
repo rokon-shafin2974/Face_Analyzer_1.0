@@ -39,14 +39,14 @@
         th { font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
         tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
 
-        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; justify-content: center;}
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
         .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
         .btn-danger:hover { background: var(--danger); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--border-light); color: var(--text-main); }
 
-        input[type="text"], input[type="password"], select, input[type="file"], textarea { padding: 12px 16px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-light); color: white; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 0.95rem; font-family: inherit; }
+        input[type="text"], input[type="password"], input[type="number"], select, input[type="file"], textarea { padding: 12px 16px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-light); color: white; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 0.95rem; font-family: inherit; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
         
         .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block;}
@@ -55,12 +55,22 @@
         .badge-master { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
 
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-        .stat-box { background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.2) 100%); padding: 25px; border-radius: 16px; border: 1px solid var(--border-light); display: flex; flex-direction: column; justify-content: center; }
+        .stat-box { background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.2) 100%); padding: 25px; border-radius: 16px; border: 1px solid var(--border-light); display: flex; flex-direction: column; justify-content: center; position: relative;}
         .stat-title { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;}
         .stat-value { font-size: 2.5rem; font-weight: 700; color: white; margin: 0; }
 
         .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 25px; }
         .chart-container { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px; border: 1px solid var(--border-light); height: 300px; display: flex; align-items: center; justify-content: center;}
+
+        /* Queue Grid */
+        .queue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; margin-top: 20px; }
+        .queue-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+        .queue-img { width: 100%; height: 200px; object-fit: cover; }
+        .queue-details { padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;}
+        
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);}
+        .modal-box { background: var(--bg-panel); border: 1px solid var(--border-light); border-radius: 16px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
 
         .wallpaper-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 15px; }
         .wallpaper-item { height: 90px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; overflow: hidden; background: #1e293b;}
@@ -77,10 +87,11 @@
 
 <aside class="sidebar">
     <div class="brand"><span style="font-size: 1.5rem;">⚡</span> Workspace</div>
-    <div class="nav-item active" onclick="switchTab('dashboard', this)">📊 Subject Database</div>
-    <div class="nav-item" onclick="switchTab('analytics', this)">📈 Analytics Overview</div>
+    <div class="nav-item active" onclick="switchTab('dashboard', this)">📊 Database</div>
+    <div class="nav-item" onclick="switchTab('queue', this)">⏳ Pending Queue <span id="queueBadge" style="background: var(--primary); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; margin-left: auto;">0</span></div>
+    <div class="nav-item" onclick="switchTab('analytics', this)">📈 Analytics</div>
     <div class="nav-item" onclick="switchTab('users', this)">👥 Team & Users</div>
-    <div class="nav-item" onclick="switchTab('settings', this)">⚙️ System Settings</div>
+    <div class="nav-item" onclick="switchTab('settings', this)">⚙️ Settings</div>
     <div class="sidebar-bottom">
         <a href="/index.html" class="nav-item" style="text-decoration: none; justify-content: center; border: 1px solid var(--border-light); margin-bottom: 15px;">🏠 Back to App</a>
         <div class="nav-item" onclick="logout()" style="color: var(--danger); justify-content: center; background: rgba(239, 68, 68, 0.05);">🚪 Logout</div>
@@ -108,13 +119,32 @@
         </div>
     </div>
 
+    <div id="queue" class="tab-content">
+        <div class="page-header">
+            <h2>Pending Queue</h2>
+        </div>
+
+        <div class="card" id="adminBatchUploadCard" style="display: none; border-color: rgba(99, 102, 241, 0.4); background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);">
+            <h3>📁 Admin Folder Upload</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Upload an entire folder of images. They will be added to the queue below for your team to process.</p>
+            <div style="display: flex; gap: 15px;">
+                <input type="file" id="folderUpload" webkitdirectory directory multiple style="flex: 1;">
+                <button class="btn btn-primary" onclick="uploadFolder()" id="uploadFolderBtn">⬆️ Upload Folder</button>
+            </div>
+        </div>
+
+        <div id="pendingContainer">
+            <p style="color: var(--text-muted);">Loading pending images...</p>
+        </div>
+    </div>
+
     <div id="analytics" class="tab-content">
         <div class="page-header"><h2>Analytics Overview</h2></div>
         <div class="stats-grid">
             <div class="stat-box"><span class="stat-title">Total Subjects</span><span class="stat-value" id="stat-subjects">0</span></div>
             <div class="stat-box"><span class="stat-title">Total Ratings</span><span class="stat-value" id="stat-ratings">0</span></div>
             <div class="stat-box"><span class="stat-title">Global Average</span><span class="stat-value" id="stat-avg" style="color: #fbbf24;">0.0</span></div>
-            <div class="stat-box"><span class="stat-title">Active Accounts</span><span class="stat-value" id="stat-users">0</span></div>
+            <div class="stat-box"><span class="stat-title">Pending Queue</span><span class="stat-value" id="stat-pending">0</span></div>
         </div>
         
         <div class="charts-grid">
@@ -220,24 +250,35 @@
                     <input type="file" id="wallpaperUpload" accept="image/*" style="display: none;" onchange="uploadWallpaper()">
                 </label>
             </div>
-            
             <div class="wallpaper-grid" id="presetWallpapers"></div>
             
             <h4 style="margin: 30px 0 15px 0; font-weight: 500; font-size: 0.95rem; color: var(--text-muted);">Uploaded by Administrators</h4>
             <div id="localWallpapersGrid" class="wallpaper-grid"></div>
         </div>
-
-        <div class="card" style="margin-top: 25px; border-color: rgba(99, 102, 241, 0.3); background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);">
-            <h3 style="border-bottom: 1px solid rgba(99, 102, 241, 0.2);">👨‍💻 Developer & System Info</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                <div><span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Lead Developer</span><span style="font-size: 1rem; color: white; font-weight: 500;">Shafin</span></div>
-                <div><span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">System Version</span><span style="font-size: 1rem; color: white; font-weight: 500;">v2.5.0 (Production Build)</span></div>
-                <div><span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Architecture</span><span style="font-size: 1rem; color: white; font-weight: 500;">Face Analyzer AI Core</span></div>
-                <div><span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Status</span><span style="font-size: 0.9rem; color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;"><span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981;"></span> Online & Active</span></div>
-            </div>
-        </div>
     </div>
 </main>
+
+<div id="rateModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 style="margin-top: 0; border-bottom: 1px solid var(--border-light); padding-bottom: 15px;">Process Pending Image</h3>
+        <div style="text-align: center; margin: 20px 0;">
+            <img id="modalImg" src="" style="max-width: 100%; max-height: 250px; border-radius: 10px; object-fit: cover;">
+        </div>
+        <input type="hidden" id="modalQueueId">
+        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Subject Name</label>
+        <input type="text" id="modalSubjectName" placeholder="Who is this?" style="margin-bottom: 15px;">
+        
+        <div id="manualRatingWrapper" style="display: none;">
+            <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px;">Manual Rating (1-10)</label>
+            <input type="number" step="0.1" max="10" min="0" id="modalManualRating" placeholder="e.g. 7.5" style="margin-bottom: 15px;">
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-outline" onclick="closeRateModal()" style="flex: 1;">Cancel</button>
+            <button class="btn btn-primary" onclick="submitPendingRating()" id="submitRateBtn" style="flex: 1;">Process & Save</button>
+        </div>
+    </div>
+</div>
 
 <script>
     Chart.defaults.color = '#cbd5e1';
@@ -245,22 +286,13 @@
     let ratingChartInst = null;
     let emotionChartInst = null;
     let selectedBgUrl = null; 
+    let currentSystemMode = 'ai';
+    let currentUserRole = 'user';
 
     const PRESETS = [
         "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop", 
         "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1531297122539-9dd37a1e2858?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1620641788421-a9f5d4e820f7?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1617791160536-598cc3201202?q=80&w=1920&auto=format&fit=crop", 
-        "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=1920&auto=format&fit=crop"  
+        "https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=1920&auto=format&fit=crop"
     ];
 
     function initPresets() {
@@ -275,15 +307,12 @@
     function previewBg(url, element) {
         document.querySelectorAll('.wallpaper-item').forEach(el => el.classList.remove('selected'));
         if (element) element.classList.add('selected');
-        
         selectedBgUrl = url;
-        
         if (url === '') document.body.style.background = '#0f172a';
         else {
             document.body.style.background = `linear-gradient(rgba(15, 23, 42, 0.85), rgba(0, 0, 0, 0.9)), url('${url}') no-repeat center center fixed`;
             document.body.style.backgroundSize = 'cover';
         }
-        
         updateSaveBtnText();
     }
 
@@ -299,42 +328,20 @@
         if (selectedBgUrl === null) return;
         const target = document.getElementById('bgTargetSelect').value;
         const btn = document.getElementById('saveBgBtn');
-        const originalText = btn.innerText;
-        btn.innerText = 'Saving...';
-        btn.disabled = true;
-
-        await fetch('/api/settings/background', { 
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ bg_url: selectedBgUrl, target: target }) 
-        });
-        
+        btn.innerText = 'Saving...'; btn.disabled = true;
+        await fetch('/api/settings/background', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bg_url: selectedBgUrl, target: target }) });
         btn.innerText = '✅ Saved Successfully!';
-        setTimeout(() => { 
-            btn.innerText = originalText; 
-            btn.disabled = false; 
-            if (target === 'login') alert('Background successfully applied to the Login Interface!');
-        }, 2000);
+        setTimeout(() => { btn.innerText = `💾 Apply to ${document.getElementById('bgTargetSelect').options[document.getElementById('bgTargetSelect').selectedIndex].text}`; btn.disabled = false; }, 2000);
     }
 
     async function uploadWallpaper() {
         const fileInput = document.getElementById('wallpaperUpload');
         const target = document.getElementById('bgTargetSelect').value;
         if (!fileInput.files[0]) return;
-        
-        const formData = new FormData(); 
-        formData.append('wallpaper', fileInput.files[0]);
-        formData.append('target', target);
-
+        const formData = new FormData(); formData.append('wallpaper', fileInput.files[0]); formData.append('target', target);
         const res = await fetch('/api/settings/background/upload', { method: 'POST', body: formData });
         const data = await res.json();
-        
-        if (data.status === 'success') { 
-            loadWallpapers(); 
-            previewBg(data.bg_url, null); 
-            fileInput.value = ''; 
-            selectedBgUrl = data.bg_url;
-            applySelectedBg();
-        }
+        if (data.status === 'success') { loadWallpapers(); previewBg(data.bg_url, null); fileInput.value = ''; selectedBgUrl = data.bg_url; applySelectedBg(); }
     }
 
     async function loadWallpapers() {
@@ -355,6 +362,127 @@
         if(element) element.classList.add('active');
     }
 
+    // =====================================
+    // PENDING QUEUE LOGIC
+    // =====================================
+    async function uploadFolder() {
+        const fileInput = document.getElementById('folderUpload');
+        if (fileInput.files.length === 0) return alert("Please select a folder containing images.");
+        
+        const btn = document.getElementById('uploadFolderBtn');
+        btn.innerText = "Uploading... Please wait";
+        btn.disabled = true;
+
+        const formData = new FormData();
+        for (let i = 0; i < fileInput.files.length; i++) {
+            formData.append('images', fileInput.files[i]);
+        }
+
+        try {
+            const res = await fetch('/api/pending/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (res.ok) {
+                alert(`Successfully uploaded ${data.uploaded} images to the queue!`);
+                fileInput.value = '';
+                loadPendingQueue();
+                loadStats();
+            } else { alert("Error: " + data.error); }
+        } catch (e) { alert("Upload failed."); }
+        
+        btn.innerText = "⬆️ Upload Folder";
+        btn.disabled = false;
+    }
+
+    async function loadPendingQueue() {
+        const res = await fetch('/api/pending');
+        const data = await res.json();
+        const container = document.getElementById('pendingContainer');
+        
+        document.getElementById('queueBadge').innerText = data.length;
+
+        if (data.length === 0) {
+            container.innerHTML = `<div style="text-align: center; padding: 40px; background: rgba(0,0,0,0.2); border-radius: 12px; color: var(--text-muted);">Queue is empty. You're all caught up! 🎉</div>`;
+            return;
+        }
+
+        let html = '<div class="queue-grid">';
+        data.forEach(item => {
+            // Only admins get the delete button
+            let deleteBtn = currentUserRole === 'admin' ? `<button class="btn btn-outline" style="padding: 6px; border-color: var(--danger); color: var(--danger);" onclick="deletePending(${item.id})" title="Delete image">🗑️</button>` : '';
+            
+            html += `
+                <div class="queue-item">
+                    <img src="${item.image_path}" class="queue-img" loading="lazy">
+                    <div class="queue-details">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-bottom: 15px;">${item.original_filename}</span>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" style="flex: 1; padding: 8px;" onclick="openRateModal(${item.id}, '${item.image_path}')">Rate Now</button>
+                            ${deleteBtn}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    async function deletePending(id) {
+        if(!confirm("Remove this image from the queue?")) return;
+        await fetch(`/api/pending/${id}`, { method: 'DELETE' });
+        loadPendingQueue(); loadStats();
+    }
+
+    function openRateModal(id, imgPath) {
+        document.getElementById('modalQueueId').value = id;
+        document.getElementById('modalImg').src = imgPath;
+        document.getElementById('modalSubjectName').value = '';
+        document.getElementById('modalManualRating').value = '';
+        
+        if(currentSystemMode === 'manual') {
+            document.getElementById('manualRatingWrapper').style.display = 'block';
+        } else {
+            document.getElementById('manualRatingWrapper').style.display = 'none';
+        }
+        
+        document.getElementById('rateModal').style.display = 'flex';
+        document.getElementById('modalSubjectName').focus();
+    }
+
+    function closeRateModal() {
+        document.getElementById('rateModal').style.display = 'none';
+    }
+
+    async function submitPendingRating() {
+        const id = document.getElementById('modalQueueId').value;
+        const name = document.getElementById('modalSubjectName').value;
+        const rating = document.getElementById('modalManualRating').value;
+        
+        if(!name) return alert("Subject name is required.");
+        
+        const btn = document.getElementById('submitRateBtn');
+        btn.innerText = "Processing AI..."; btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/pending/rate', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ queue_id: id, name: name, rating: rating })
+            });
+            if(res.ok) {
+                closeRateModal();
+                loadPendingQueue();
+                loadAdminDataAndCharts();
+                loadStats();
+            } else { alert("Failed to rate image."); }
+        } catch (e) {}
+        
+        btn.innerText = "Process & Save"; btn.disabled = false;
+    }
+
+
+    // =====================================
+    // CORE SYSTEM
+    // =====================================
     async function initAdmin() {
         initPresets();
         try {
@@ -363,19 +491,23 @@
             if (bgData.bg_url) {
                 document.body.style.background = `linear-gradient(rgba(15, 23, 42, 0.85), rgba(0, 0, 0, 0.9)), url('${bgData.bg_url}') no-repeat center center fixed`;
                 document.body.style.backgroundSize = 'cover';
-                setTimeout(() => {
-                    const activeThumb = document.querySelector(`.wallpaper-item[onclick*="${bgData.bg_url}"]`);
-                    if (activeThumb) activeThumb.classList.add('selected');
-                }, 500);
             }
-            fetch('/api/settings/mode').then(r=>r.json()).then(d => document.getElementById('modeSelect').value = d.mode);
+            const modeData = await (await fetch('/api/settings/mode')).json();
+            document.getElementById('modeSelect').value = modeData.mode;
+            currentSystemMode = modeData.mode;
+            currentUserRole = modeData.role;
             
+            // Show admin features if applicable
+            if(currentUserRole === 'admin') {
+                document.getElementById('adminBatchUploadCard').style.display = 'block';
+            }
+
             loadAdminDataAndCharts();
             loadUsers();
             loadWallpapers();
-            loadGallerySettings();
             loadStats();
             loadAIPrompt();
+            loadPendingQueue(); // Load Queue Data
         } catch(e) { console.error(e); }
     }
 
@@ -384,25 +516,19 @@
     document.getElementById('savePromptBtn').addEventListener('click', saveAIPrompt);
 
     async function loadAIPrompt() {
-        try {
-            const res = await fetch('/api/settings/prompt');
-            if(res.ok) {
-                const data = await res.json();
-                document.getElementById('aiPromptInput').value = data.prompt || '';
-            }
-        } catch(e) { console.log("Prompt endpoint inactive."); }
+        try { const res = await fetch('/api/settings/prompt'); if(res.ok) { document.getElementById('aiPromptInput').value = (await res.json()).prompt || ''; } } catch(e) {}
     }
 
     async function saveAIPrompt() {
         const prompt = document.getElementById('aiPromptInput').value;
-        const btn = document.getElementById('savePromptBtn');
-        btn.innerText = 'Saving...';
+        const btn = document.getElementById('savePromptBtn'); btn.innerText = 'Saving...';
         await fetch('/api/settings/prompt', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({prompt}) });
         btn.innerText = 'Save Custom Prompt';
     }
 
     async function setMode(mode) {
         await fetch('/api/settings/mode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: mode }) });
+        currentSystemMode = mode;
         alert('Rating mode updated.');
     }
 
@@ -412,15 +538,6 @@
         loadWallpapers();
     }
 
-    async function loadGallerySettings() {
-        const res = await fetch('/api/settings/gallery');
-        const toggle = document.getElementById('galleryVisibilityToggle');
-        toggle.checked = (await res.json()).visible;
-        toggle.addEventListener('change', async (e) => {
-            await fetch('/api/settings/gallery', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visible: e.target.checked }) });
-        });
-    }
-
     async function loadStats() {
         const res = await fetch('/api/stats');
         if(res.ok) {
@@ -428,7 +545,8 @@
             document.getElementById('stat-subjects').innerText = data.total_subjects;
             document.getElementById('stat-ratings').innerText = data.total_ratings;
             document.getElementById('stat-avg').innerText = data.avg_rating;
-            document.getElementById('stat-users').innerText = data.total_users;
+            // Update queue stat safely (in case standard user is viewing)
+            if(document.getElementById('stat-pending')) document.getElementById('stat-pending').innerText = data.pending_count || 0;
         }
     }
 
@@ -453,7 +571,6 @@
     function buildCharts(data) {
         let ranges = {"1-3":0, "4-6":0, "7-8":0, "9-10":0};
         let emotions = {};
-        
         data.forEach(item => {
             let r = item.rating;
             if(r<=3) ranges["1-3"]++; else if(r<=6) ranges["4-6"]++; else if(r<=8) ranges["7-8"]++; else ranges["9-10"]++;
@@ -463,34 +580,26 @@
 
         if(ratingChartInst) ratingChartInst.destroy();
         ratingChartInst = new Chart(document.getElementById('ratingChart'), {
-            type: 'bar',
-            data: { labels: Object.keys(ranges), datasets: [{ label: 'Subjects', data: Object.values(ranges), backgroundColor: '#6366f1', borderRadius: 6 }] },
+            type: 'bar', data: { labels: Object.keys(ranges), datasets: [{ label: 'Subjects', data: Object.values(ranges), backgroundColor: '#6366f1', borderRadius: 6 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} } }
         });
 
         if(emotionChartInst) emotionChartInst.destroy();
         emotionChartInst = new Chart(document.getElementById('emotionChart'), {
-            type: 'doughnut',
-            data: { labels: Object.keys(emotions), datasets: [{ data: Object.values(emotions), backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#64748b'], borderWidth: 0 }] },
+            type: 'doughnut', data: { labels: Object.keys(emotions), datasets: [{ data: Object.values(emotions), backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#64748b'], borderWidth: 0 }] },
             options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right' } } }
         });
     }
 
-    // NEW: Load Users and Highlight Master Admin
     async function loadUsers() {
+        if(currentUserRole !== 'admin') return;
         const users = await (await fetch('/api/users')).json();
         const tbody = document.getElementById('userTableBody');
         tbody.innerHTML = '';
         users.forEach(u => {
             let roleBadge = u.is_master ? `<span class="badge badge-master">👑 Master Admin</span>` : `<span class="badge badge-role">${u.role}</span>`;
             let deleteBtn = u.is_master ? `<span style="color:var(--text-muted); font-size: 0.8rem; font-style: italic;">Protected</span>` : `<button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem; border-color: var(--danger); color: var(--danger);" onclick="deleteUser(${u.id})">Remove</button>`;
-            
-            tbody.innerHTML += `<tr>
-                <td style="color: var(--text-muted);">#${u.id}</td>
-                <td style="font-weight: 500;">${u.username}</td>
-                <td>${roleBadge}</td>
-                <td style="text-align: right;">${deleteBtn}</td>
-            </tr>`;
+            tbody.innerHTML += `<tr><td style="color: var(--text-muted);">#${u.id}</td><td style="font-weight: 500;">${u.username}</td><td>${roleBadge}</td><td style="text-align: right;">${deleteBtn}</td></tr>`;
         });
     }
 
@@ -507,33 +616,15 @@
         if(res.status === 'success') { loadUsers(); loadStats(); } else alert(res.error);
     }
 
-    // NEW: Update Master Admin Credentials
     async function updateMasterAdmin() {
         const current_username = document.getElementById('masterCurrentUsername').value;
         const current_password = document.getElementById('masterCurrentPassword').value;
         const new_username = document.getElementById('masterNewUsername').value;
         const new_password = document.getElementById('masterNewPassword').value;
-        
-        if(!current_username || !current_password || !new_username || !new_password) {
-            return alert("Please fill out all 4 fields to update Master Admin credentials.");
-        }
-        
-        const res = await fetch('/api/users/master', {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ current_username, current_password, new_username, new_password })
-        });
+        if(!current_username || !current_password || !new_username || !new_password) return alert("Please fill out all 4 fields.");
+        const res = await fetch('/api/users/master', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ current_username, current_password, new_username, new_password }) });
         const data = await res.json();
-        
-        if(res.ok && data.status === 'success') {
-            alert("Master Admin credentials successfully updated!");
-            document.getElementById('masterCurrentUsername').value = '';
-            document.getElementById('masterCurrentPassword').value = '';
-            document.getElementById('masterNewUsername').value = '';
-            document.getElementById('masterNewPassword').value = '';
-            loadUsers();
-        } else {
-            alert("Error: " + data.error);
-        }
+        if(res.ok && data.status === 'success') { alert("Updated successfully!"); document.getElementById('masterCurrentUsername').value = ''; document.getElementById('masterCurrentPassword').value = ''; document.getElementById('masterNewUsername').value = ''; document.getElementById('masterNewPassword').value = ''; loadUsers(); } else alert("Error: " + data.error);
     }
 
     async function deleteRecord(id) {
