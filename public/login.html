@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authenticate | Face Analyzer Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4f46e5; --primary-glow: rgba(79, 70, 229, 0.4); --bg-base: #000000; --card-bg: rgba(9, 9, 11, 0.8); --border-light: rgba(255, 255, 255, 0.1); --text-muted: #a1a1aa; }
+        
+        body { font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh; display: flex; justify-content: center; align-items: center; background-color: var(--bg-base); color: white; position: relative; overflow: hidden; transition: background 0.8s ease; }
+        
+        /* High-tech glowing orb effect in the background (hidden if custom BG is loaded) */
+        .glow-orb { position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0; filter: blur(40px); animation: pulse 6s infinite alternate; }
+        @keyframes pulse { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.5; } 100% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } }
+
+        .login-card { position: relative; z-index: 10; background: var(--card-bg); backdrop-filter: blur(20px); border-radius: 16px; width: 100%; max-width: 380px; padding: 40px; box-sizing: border-box; border: 1px solid var(--border-light); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8); text-align: center; }
+        
+        .brand { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 30px; font-weight: 300; }
+
+        .toggle-wrapper { background: #18181b; border-radius: 10px; display: flex; padding: 4px; margin-bottom: 25px; border: 1px solid var(--border-light); position: relative; }
+        .toggle-btn { flex: 1; padding: 10px; border: none; background: transparent; color: var(--text-muted); font-weight: 500; border-radius: 6px; cursor: pointer; transition: 0.3s ease; font-family: inherit; font-size: 0.85rem; z-index: 2;}
+        .toggle-btn.active { color: white; }
+        .toggle-slider { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); background: #27272a; border-radius: 6px; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); z-index: 1; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+        .form-section { display: none; animation: slideUp 0.4s ease; }
+        .form-section.active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .input-group { position: relative; margin-bottom: 15px; }
+        input { width: 100%; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--border-light); background: #09090b; color: white; box-sizing: border-box; font-size: 0.95rem; transition: 0.2s; font-family: inherit; }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-glow); background: #18181b; }
+
+        .btn-main { width: 100%; padding: 14px; border: none; border-radius: 10px; background: white; color: black; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: 0.2s; font-family: inherit; margin-top: 10px; }
+        .btn-main:hover { background: #e4e4e7; transform: translateY(-1px); }
+        .btn-admin-submit { background: var(--primary); color: white; }
+        .btn-admin-submit:hover { background: #4338ca; }
+        
+        .error-msg { color: #f87171; font-size: 0.85rem; margin-top: 15px; display: none; font-weight: 500; background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);}
+    </style>
+</head>
+<body>
+
+<div class="glow-orb" id="glowOrb"></div>
+
+<div class="login-card">
+    <div class="brand"><span>⚡</span> Studio Access</div>
+    <div class="subtitle">Authenticate to continue to the workspace</div>
+
+    <div class="toggle-wrapper">
+        <div class="toggle-slider" id="slider"></div>
+        <button class="toggle-btn active" onclick="switchTab('user', 0)">Standard</button>
+        <button class="toggle-btn" onclick="switchTab('admin', 1)">Administrator</button>
+    </div>
+
+    <form id="userLoginForm" class="form-section active" onsubmit="handleLogin(event, 'user')">
+        <div class="input-group">
+            <input type="text" id="user_username" placeholder="Username" required autocomplete="username">
+        </div>
+        <div class="input-group">
+            <input type="password" id="user_password" placeholder="Password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-main" id="userSubmitBtn">Continue to Studio</button>
+        <div id="userErrorMsg" class="error-msg"></div>
+    </form>
+
+    <form id="adminLoginForm" class="form-section" onsubmit="handleLogin(event, 'admin')">
+        <div class="input-group">
+            <input type="text" id="admin_username" placeholder="Admin Username" required autocomplete="username">
+        </div>
+        <div class="input-group">
+            <input type="password" id="admin_password" placeholder="Admin Password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-main btn-admin-submit" id="adminSubmitBtn">Authorize Admin</button>
+        <div id="adminErrorMsg" class="error-msg"></div>
+    </form>
+</div>
+
+<script>
+    // NEW: Load the custom background specifically for the Login page
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await fetch('/api/settings/background');
+            const data = await res.json();
+            if (data.login_bg_url && data.login_bg_url !== '') {
+                // If a custom background is set, hide the glowing orb and apply the image
+                document.getElementById('glowOrb').style.display = 'none';
+                document.body.style.background = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.9)), url('${data.login_bg_url}') no-repeat center center fixed`;
+                document.body.style.backgroundSize = 'cover';
+            }
+        } catch (e) {
+            console.error("Could not load login background settings", e);
+        }
+    });
+
+    function switchTab(type, index) {
+        document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.form-section').forEach(f => f.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById(type + 'LoginForm').classList.add('active');
+        
+        const slider = document.getElementById('slider');
+        if(index === 0) { slider.style.transform = 'translateX(0)'; }
+        else { slider.style.transform = 'translateX(100%)'; }
+    }
+
+    async function handleLogin(e, roleType) {
+        e.preventDefault();
+        const btn = document.getElementById(roleType + 'SubmitBtn');
+        const err = document.getElementById(roleType + 'ErrorMsg');
+        const usernameInput = document.getElementById(roleType + '_username').value;
+        const passwordInput = document.getElementById(roleType + '_password').value;
+        
+        const originalBtnText = btn.innerText;
+        btn.innerText = "Authenticating..."; btn.disabled = true; err.style.display = 'none';
+
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: usernameInput, password: passwordInput })
+            });
+            const data = await res.json();
+
+            if (res.ok) { 
+                if (roleType === 'admin' && data.role !== 'admin') {
+                    await fetch('/api/logout', { method: 'POST' });
+                    err.innerText = "Access Denied: Administrator privileges required.";
+                    err.style.display = 'block'; btn.innerText = originalBtnText; btn.disabled = false; return;
+                }
+                window.location.href = roleType === 'admin' ? '/admin.html' : '/index.html'; 
+            } else {
+                err.innerText = data.error || "Authentication failed."; err.style.display = 'block';
+                btn.innerText = originalBtnText; btn.disabled = false;
+            }
+        } catch (error) {
+            err.innerText = "Network error. Please try again."; err.style.display = 'block';
+            btn.innerText = originalBtnText; btn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>

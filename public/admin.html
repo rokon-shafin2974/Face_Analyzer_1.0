@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Workspace | Face Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { 
+            --primary: #6366f1; --primary-hover: #4f46e5;
+            --danger: #ef4444; --danger-hover: #dc2626;
+            --bg-base: #0f172a; --bg-panel: rgba(30, 41, 59, 0.6); 
+            --bg-glass: rgba(15, 23, 42, 0.75); --border-light: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc; --text-muted: #94a3b8;
+        }
+        
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-base); color: var(--text-main); margin: 0; display: flex; min-height: 100vh; transition: background 0.8s ease; }
+        .sidebar { width: 260px; background: var(--bg-glass); backdrop-filter: blur(20px); border-right: 1px solid var(--border-light); padding: 30px 20px; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; box-sizing: border-box; z-index: 100; }
+        .brand { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 40px; display: flex; align-items: center; gap: 10px; color: #fff; }
+        .nav-item { padding: 12px 16px; border-radius: 10px; cursor: pointer; font-weight: 500; color: var(--text-muted); transition: all 0.2s ease; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-main); }
+        .nav-item.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+        .sidebar-bottom { margin-top: auto; }
+
+        .main-content { flex: 1; padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .page-header h2 { margin: 0; font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--bg-panel); backdrop-filter: blur(12px); padding: 30px; border-radius: 16px; margin-bottom: 25px; border: 1px solid var(--border-light); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
+        .card h3 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 15px; margin-bottom: 20px; color: #fff; display: flex; justify-content: space-between; align-items: center;}
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border-light); }
+        th { font-weight: 600; color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--border-light); color: var(--text-main); }
+
+        input[type="text"], input[type="password"], select, input[type="file"], textarea { padding: 12px 16px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-light); color: white; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 0.95rem; font-family: inherit; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+        
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block;}
+        .badge-gold { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); }
+        .badge-role { background: rgba(148, 163, 184, 0.1); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.2); text-transform: capitalize;}
+        .badge-master { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .stat-box { background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.2) 100%); padding: 25px; border-radius: 16px; border: 1px solid var(--border-light); display: flex; flex-direction: column; justify-content: center; }
+        .stat-title { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .stat-value { font-size: 2.5rem; font-weight: 700; color: white; margin: 0; }
+
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 25px; }
+        .chart-container { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 20px; border: 1px solid var(--border-light); height: 300px; display: flex; align-items: center; justify-content: center;}
+
+        .wallpaper-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 15px; }
+        .wallpaper-item { height: 90px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; position: relative; overflow: hidden; background: #1e293b;}
+        .wallpaper-item:hover { border-color: rgba(99, 102, 241, 0.5); transform: scale(1.05); z-index: 10;}
+        .wallpaper-item.selected { border-color: var(--primary); transform: scale(1.05); z-index: 10; box-shadow: 0 0 15px rgba(99, 102, 241, 0.5); }
+        .wallpaper-item img { width: 100%; height: 100%; object-fit: cover; }
+        
+        input[type="checkbox"] { accent-color: var(--primary); width: 18px; height: 18px; cursor: pointer;}
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="brand"><span style="font-size: 1.5rem;">⚡</span> Workspace</div>
+    <div class="nav-item active" onclick="switchTab('dashboard', this)">📊 Subject Database</div>
+    <div class="nav-item" onclick="switchTab('analytics', this)">📈 Analytics Overview</div>
+    <div class="nav-item" onclick="switchTab('users', this)">👥 Team & Users</div>
+    <div class="nav-item" onclick="switchTab('settings', this)">⚙️ System Settings</div>
+    <div class="sidebar-bottom">
+        <a href="/index.html" class="nav-item" style="text-decoration: none; justify-content: center; border: 1px solid var(--border-light); margin-bottom: 15px;">🏠 Back to App</a>
+        <div class="nav-item" onclick="logout()" style="color: var(--danger); justify-content: center; background: rgba(239, 68, 68, 0.05);">🚪 Logout</div>
+    </div>
+</aside>
+
+<main class="main-content">
+    
+    <div id="dashboard" class="tab-content active">
+        <div class="page-header">
+            <h2>Subject Database</h2>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-danger" id="bulkDeleteBtn">🗑️ Delete Selected</button>
+                <button class="btn btn-primary" id="exportDataBtn">📥 Export to CSV</button>
+            </div>
+        </div>
+        <div class="card" style="overflow-x: auto; padding: 10px 30px 30px 30px;">
+            <table id="dataTable">
+                <thead><tr>
+                    <th style="width: 40px;"><input type="checkbox" id="selectAll"></th>
+                    <th>ID</th><th>Subject Name</th><th>Avg Rating</th><th style="text-align: right;">Actions</th>
+                </tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="analytics" class="tab-content">
+        <div class="page-header"><h2>Analytics Overview</h2></div>
+        <div class="stats-grid">
+            <div class="stat-box"><span class="stat-title">Total Subjects</span><span class="stat-value" id="stat-subjects">0</span></div>
+            <div class="stat-box"><span class="stat-title">Total Ratings</span><span class="stat-value" id="stat-ratings">0</span></div>
+            <div class="stat-box"><span class="stat-title">Global Average</span><span class="stat-value" id="stat-avg" style="color: #fbbf24;">0.0</span></div>
+            <div class="stat-box"><span class="stat-title">Active Accounts</span><span class="stat-value" id="stat-users">0</span></div>
+        </div>
+        
+        <div class="charts-grid">
+            <div class="card" style="margin: 0; padding: 20px;">
+                <h3 style="font-size: 0.95rem; margin-bottom: 10px; border:none;">Rating Distribution</h3>
+                <div class="chart-container"><canvas id="ratingChart"></canvas></div>
+            </div>
+            <div class="card" style="margin: 0; padding: 20px;">
+                <h3 style="font-size: 0.95rem; margin-bottom: 10px; border:none;">Emotion Detection</h3>
+                <div class="chart-container"><canvas id="emotionChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="users" class="tab-content">
+        <div class="page-header"><h2>Team & Users</h2></div>
+
+        <div class="card" style="border-color: rgba(16, 185, 129, 0.3); background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);">
+            <h3 style="border-bottom: 1px solid rgba(16, 185, 129, 0.2);">👑 Master Admin Access</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Update the un-deletable Master Admin account. You must verify ownership by inputting the current credentials.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Verify Current Access</label>
+                    <input type="text" id="masterCurrentUsername" placeholder="Current Username" style="margin-bottom: 10px;">
+                    <input type="password" id="masterCurrentPassword" placeholder="Current Password">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px;">Set New Credentials</label>
+                    <input type="text" id="masterNewUsername" placeholder="New Username" style="margin-bottom: 10px;">
+                    <input type="password" id="masterNewPassword" placeholder="New Password">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="updateMasterAdmin()" style="background: #10b981; margin-top: 10px;">💾 Update Master Credentials</button>
+        </div>
+
+        <div class="card">
+            <h3>Invite Standard User or Admin</h3>
+            <div style="display: grid; grid-template-columns: 2fr 2fr 1.5fr auto; gap: 15px; align-items: center;">
+                <input type="text" id="newUsername" placeholder="Username">
+                <input type="password" id="newPassword" placeholder="Secure Password">
+                <select id="newRole"><option value="user">Standard User</option><option value="admin">Secondary Administrator</option></select>
+                <button class="btn btn-primary" onclick="addUser()" style="height: 100%;">Create Account</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="border-bottom: none; margin-bottom: 0;">Active Accounts</h3>
+            <table>
+                <thead><tr><th>ID</th><th>Username</th><th>Permissions</th><th style="text-align: right;">Manage</th></tr></thead>
+                <tbody id="userTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="settings" class="tab-content">
+        <div class="page-header"><h2>System Settings</h2></div>
+        
+        <div class="card">
+            <h3>🧠 AI Prompt Customization</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Customize the exact instructions and perspective sent to the AI when analyzing an image.</p>
+            <textarea id="aiPromptInput" rows="3" placeholder="e.g. Rate this person's facial aesthetics strictly from 1 to 10..." style="resize: vertical; margin-bottom: 15px;"></textarea>
+            <button class="btn btn-primary" id="savePromptBtn">Save Custom Prompt</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+            <div class="card" style="margin-bottom: 0;">
+                <h3>🤖 Core Rating Engine</h3>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <select id="modeSelect" style="flex: 1; margin-bottom: 0;"><option value="ai">Cloud AI</option><option value="manual">Manual Entry Mode</option></select>
+                    <button class="btn btn-primary" onclick="setMode(document.getElementById('modeSelect').value)">Apply</button>
+                </div>
+            </div>
+            <div class="card" style="margin-bottom: 0;">
+                <h3>🌐 Public UI Visibility</h3>
+                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; border: 1px solid var(--border-light); margin-top: 15px;">
+                    <input type="checkbox" id="galleryVisibilityToggle"> <span style="font-weight: 500;">Display "Recent Ratings" publicly</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🖼️ Application Backgrounds</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Click a background below to <b>Preview</b> it full-screen. When you find the perfect one, select a Target and click Apply.</p>
+            
+            <div style="display: flex; gap: 15px; margin-bottom: 30px; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; border: 1px solid var(--border-light); align-items: flex-end;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-weight: 500; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">1. Select Target Page</label>
+                    <select id="bgTargetSelect" style="width: 100%; background: rgba(0,0,0,0.6);" onchange="updateSaveBtnText()">
+                        <option value="workspace">Main Workspace (App & Admin Pages)</option>
+                        <option value="login">Login Interface</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <button id="saveBgBtn" class="btn btn-primary" onclick="applySelectedBg()" style="width: 100%; font-size: 1rem;" disabled>💾 Select an image to Apply</button>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="margin: 0; font-weight: 500; font-size: 0.95rem; color: var(--text-muted);">Premium Presets</h4>
+                <label style="cursor: pointer; font-size: 0.85rem; color: var(--primary); font-weight: 600;">
+                    + Upload Custom
+                    <input type="file" id="wallpaperUpload" accept="image/*" style="display: none;" onchange="uploadWallpaper()">
+                </label>
+            </div>
+            
+            <div class="wallpaper-grid" id="presetWallpapers"></div>
+            
+            <h4 style="margin: 30px 0 15px 0; font-weight: 500; font-size: 0.95rem; color: var(--text-muted);">Uploaded by Administrators</h4>
+            <div id="localWallpapersGrid" class="wallpaper-grid"></div>
+        </div>
+
+        <div class="card" style="margin-top: 25px; border-color: rgba(99, 102, 241, 0.3); background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);">
+            <h3 style="border-bottom: 1px solid rgba(99, 102, 241, 0.2);">👨‍💻 Developer & System Info</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                <div><span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Lead Developer</span><span style="font-size: 1rem; color: white; font-weight: 500;">Shafin</span></div>
+                <div><span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">System Version</span><span style="font-size: 1rem; color: white; font-weight: 500;">v2.5.0 (Production Build)</span></div>
+                <div><span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Architecture</span><span style="font-size: 1rem; color: white; font-weight: 500;">Face Analyzer AI Core</span></div>
+                <div><span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Status</span><span style="font-size: 0.9rem; color: #10b981; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;"><span style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981;"></span> Online & Active</span></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    Chart.defaults.color = '#cbd5e1';
+    Chart.defaults.font.family = 'Inter';
+    let ratingChartInst = null;
+    let emotionChartInst = null;
+    let selectedBgUrl = null; 
+
+    const PRESETS = [
+        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1605806616949-1e87b487cb2a?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1531297122539-9dd37a1e2858?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1620641788421-a9f5d4e820f7?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1617791160536-598cc3201202?q=80&w=1920&auto=format&fit=crop", 
+        "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?q=80&w=1920&auto=format&fit=crop"  
+    ];
+
+    function initPresets() {
+        const grid = document.getElementById('presetWallpapers');
+        PRESETS.forEach(fullUrl => {
+            const thumbUrl = fullUrl.replace('w=1920', 'w=300').replace('q=80', 'q=50');
+            grid.innerHTML += `<div class="wallpaper-item" onclick="previewBg('${fullUrl}', this)"><img src="${thumbUrl}" loading="lazy"></div>`;
+        });
+        grid.innerHTML += `<div class="wallpaper-item" onclick="previewBg('', this)" style="background: #000; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: #64748b;">Pitch Black</div>`;
+    }
+
+    function previewBg(url, element) {
+        document.querySelectorAll('.wallpaper-item').forEach(el => el.classList.remove('selected'));
+        if (element) element.classList.add('selected');
+        
+        selectedBgUrl = url;
+        
+        if (url === '') document.body.style.background = '#0f172a';
+        else {
+            document.body.style.background = `linear-gradient(rgba(15, 23, 42, 0.85), rgba(0, 0, 0, 0.9)), url('${url}') no-repeat center center fixed`;
+            document.body.style.backgroundSize = 'cover';
+        }
+        
+        updateSaveBtnText();
+    }
+
+    function updateSaveBtnText() {
+        const btn = document.getElementById('saveBgBtn');
+        if (selectedBgUrl === null) return;
+        const targetText = document.getElementById('bgTargetSelect').options[document.getElementById('bgTargetSelect').selectedIndex].text;
+        btn.disabled = false;
+        btn.innerText = `💾 Apply to ${targetText}`;
+    }
+
+    async function applySelectedBg() {
+        if (selectedBgUrl === null) return;
+        const target = document.getElementById('bgTargetSelect').value;
+        const btn = document.getElementById('saveBgBtn');
+        const originalText = btn.innerText;
+        btn.innerText = 'Saving...';
+        btn.disabled = true;
+
+        await fetch('/api/settings/background', { 
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ bg_url: selectedBgUrl, target: target }) 
+        });
+        
+        btn.innerText = '✅ Saved Successfully!';
+        setTimeout(() => { 
+            btn.innerText = originalText; 
+            btn.disabled = false; 
+            if (target === 'login') alert('Background successfully applied to the Login Interface!');
+        }, 2000);
+    }
+
+    async function uploadWallpaper() {
+        const fileInput = document.getElementById('wallpaperUpload');
+        const target = document.getElementById('bgTargetSelect').value;
+        if (!fileInput.files[0]) return;
+        
+        const formData = new FormData(); 
+        formData.append('wallpaper', fileInput.files[0]);
+        formData.append('target', target);
+
+        const res = await fetch('/api/settings/background/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+        
+        if (data.status === 'success') { 
+            loadWallpapers(); 
+            previewBg(data.bg_url, null); 
+            fileInput.value = ''; 
+            selectedBgUrl = data.bg_url;
+            applySelectedBg();
+        }
+    }
+
+    async function loadWallpapers() {
+        const res = await fetch('/api/settings/backgrounds/local');
+        const files = await res.json();
+        const grid = document.getElementById('localWallpapersGrid');
+        grid.innerHTML = '';
+        files.forEach(file => {
+            grid.innerHTML += `<div class="wallpaper-item" onclick="previewBg('${file}', this)"><img src="${file}" loading="lazy">
+                <button onclick="event.stopPropagation(); deleteWallpaper('${file}')" style="position: absolute; top: 5px; right: 5px; background: rgba(239,68,68,0.9); color: white; border: none; border-radius: 6px; width: 25px; height: 25px; cursor: pointer;">✕</button></div>`;
+        });
+    }
+
+    function switchTab(tabId, element) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if(element) element.classList.add('active');
+    }
+
+    async function initAdmin() {
+        initPresets();
+        try {
+            const bgRes = await fetch('/api/settings/background');
+            const bgData = await bgRes.json();
+            if (bgData.bg_url) {
+                document.body.style.background = `linear-gradient(rgba(15, 23, 42, 0.85), rgba(0, 0, 0, 0.9)), url('${bgData.bg_url}') no-repeat center center fixed`;
+                document.body.style.backgroundSize = 'cover';
+                setTimeout(() => {
+                    const activeThumb = document.querySelector(`.wallpaper-item[onclick*="${bgData.bg_url}"]`);
+                    if (activeThumb) activeThumb.classList.add('selected');
+                }, 500);
+            }
+            fetch('/api/settings/mode').then(r=>r.json()).then(d => document.getElementById('modeSelect').value = d.mode);
+            
+            loadAdminDataAndCharts();
+            loadUsers();
+            loadWallpapers();
+            loadGallerySettings();
+            loadStats();
+            loadAIPrompt();
+        } catch(e) { console.error(e); }
+    }
+
+    document.getElementById('exportDataBtn').addEventListener('click', () => window.location.href = '/api/export');
+    document.getElementById('bulkDeleteBtn').addEventListener('click', bulkDelete);
+    document.getElementById('savePromptBtn').addEventListener('click', saveAIPrompt);
+
+    async function loadAIPrompt() {
+        try {
+            const res = await fetch('/api/settings/prompt');
+            if(res.ok) {
+                const data = await res.json();
+                document.getElementById('aiPromptInput').value = data.prompt || '';
+            }
+        } catch(e) { console.log("Prompt endpoint inactive."); }
+    }
+
+    async function saveAIPrompt() {
+        const prompt = document.getElementById('aiPromptInput').value;
+        const btn = document.getElementById('savePromptBtn');
+        btn.innerText = 'Saving...';
+        await fetch('/api/settings/prompt', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({prompt}) });
+        btn.innerText = 'Save Custom Prompt';
+    }
+
+    async function setMode(mode) {
+        await fetch('/api/settings/mode', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: mode }) });
+        alert('Rating mode updated.');
+    }
+
+    async function deleteWallpaper(url) {
+        if(!confirm('Delete wallpaper?')) return;
+        await fetch('/api/settings/backgrounds/local', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bg_url: url }) });
+        loadWallpapers();
+    }
+
+    async function loadGallerySettings() {
+        const res = await fetch('/api/settings/gallery');
+        const toggle = document.getElementById('galleryVisibilityToggle');
+        toggle.checked = (await res.json()).visible;
+        toggle.addEventListener('change', async (e) => {
+            await fetch('/api/settings/gallery', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visible: e.target.checked }) });
+        });
+    }
+
+    async function loadStats() {
+        const res = await fetch('/api/stats');
+        if(res.ok) {
+            const data = await res.json();
+            document.getElementById('stat-subjects').innerText = data.total_subjects;
+            document.getElementById('stat-ratings').innerText = data.total_ratings;
+            document.getElementById('stat-avg').innerText = data.avg_rating;
+            document.getElementById('stat-users').innerText = data.total_users;
+        }
+    }
+
+    async function loadAdminDataAndCharts() {
+        const res = await fetch('/api/data');
+        if (res.status === 401 || res.status === 403) return window.location.href = '/login.html';
+        const data = await res.json();
+        
+        const tbody = document.querySelector('#dataTable tbody');
+        tbody.innerHTML = '';
+        data.forEach(row => {
+            tbody.innerHTML += `<tr>
+                <td><input type="checkbox" class="row-checkbox" value="${row.id}"></td>
+                <td style="color: var(--text-muted);">#${row.id}</td><td style="font-weight: 500;">${row.name}</td>
+                <td><span class="badge badge-gold">⭐ ${row.rating}</span></td>
+                <td style="text-align: right;"><button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.8rem;" onclick="deleteRecord(${row.id})">Delete</button></td>
+            </tr>`;
+        });
+        buildCharts(data);
+    }
+
+    function buildCharts(data) {
+        let ranges = {"1-3":0, "4-6":0, "7-8":0, "9-10":0};
+        let emotions = {};
+        
+        data.forEach(item => {
+            let r = item.rating;
+            if(r<=3) ranges["1-3"]++; else if(r<=6) ranges["4-6"]++; else if(r<=8) ranges["7-8"]++; else ranges["9-10"]++;
+            let e = item.emotion || 'Unknown';
+            emotions[e] = (emotions[e] || 0) + 1;
+        });
+
+        if(ratingChartInst) ratingChartInst.destroy();
+        ratingChartInst = new Chart(document.getElementById('ratingChart'), {
+            type: 'bar',
+            data: { labels: Object.keys(ranges), datasets: [{ label: 'Subjects', data: Object.values(ranges), backgroundColor: '#6366f1', borderRadius: 6 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} } }
+        });
+
+        if(emotionChartInst) emotionChartInst.destroy();
+        emotionChartInst = new Chart(document.getElementById('emotionChart'), {
+            type: 'doughnut',
+            data: { labels: Object.keys(emotions), datasets: [{ data: Object.values(emotions), backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#64748b'], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'right' } } }
+        });
+    }
+
+    // NEW: Load Users and Highlight Master Admin
+    async function loadUsers() {
+        const users = await (await fetch('/api/users')).json();
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = '';
+        users.forEach(u => {
+            let roleBadge = u.is_master ? `<span class="badge badge-master">👑 Master Admin</span>` : `<span class="badge badge-role">${u.role}</span>`;
+            let deleteBtn = u.is_master ? `<span style="color:var(--text-muted); font-size: 0.8rem; font-style: italic;">Protected</span>` : `<button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem; border-color: var(--danger); color: var(--danger);" onclick="deleteUser(${u.id})">Remove</button>`;
+            
+            tbody.innerHTML += `<tr>
+                <td style="color: var(--text-muted);">#${u.id}</td>
+                <td style="font-weight: 500;">${u.username}</td>
+                <td>${roleBadge}</td>
+                <td style="text-align: right;">${deleteBtn}</td>
+            </tr>`;
+        });
+    }
+
+    async function addUser() {
+        const username = document.getElementById('newUsername').value, password = document.getElementById('newPassword').value, role = document.getElementById('newRole').value;
+        if(!username || !password) return alert("Fill all fields.");
+        const res = await (await fetch('/api/users/add', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ username, password, role }) })).json();
+        if(res.status === 'success') { document.getElementById('newUsername').value = ''; document.getElementById('newPassword').value = ''; loadUsers(); loadStats(); } else alert(res.error);
+    }
+
+    async function deleteUser(id) {
+        if(!confirm("Remove this user?")) return;
+        const res = await (await fetch(`/api/users/${id}`, { method: 'DELETE' })).json();
+        if(res.status === 'success') { loadUsers(); loadStats(); } else alert(res.error);
+    }
+
+    // NEW: Update Master Admin Credentials
+    async function updateMasterAdmin() {
+        const current_username = document.getElementById('masterCurrentUsername').value;
+        const current_password = document.getElementById('masterCurrentPassword').value;
+        const new_username = document.getElementById('masterNewUsername').value;
+        const new_password = document.getElementById('masterNewPassword').value;
+        
+        if(!current_username || !current_password || !new_username || !new_password) {
+            return alert("Please fill out all 4 fields to update Master Admin credentials.");
+        }
+        
+        const res = await fetch('/api/users/master', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ current_username, current_password, new_username, new_password })
+        });
+        const data = await res.json();
+        
+        if(res.ok && data.status === 'success') {
+            alert("Master Admin credentials successfully updated!");
+            document.getElementById('masterCurrentUsername').value = '';
+            document.getElementById('masterCurrentPassword').value = '';
+            document.getElementById('masterNewUsername').value = '';
+            document.getElementById('masterNewPassword').value = '';
+            loadUsers();
+        } else {
+            alert("Error: " + data.error);
+        }
+    }
+
+    async function deleteRecord(id) {
+        if (!confirm("Delete this subject permanently?")) return;
+        await fetch(`/api/data/${id}`, { method: 'DELETE' });
+        loadAdminDataAndCharts(); loadStats();
+    }
+
+    document.getElementById('selectAll').addEventListener('change', (e) => document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = e.target.checked));
+
+    async function bulkDelete() {
+        const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) return alert("Select records to delete.");
+        if (!confirm(`Delete ${selected.length} records?`)) return;
+        document.getElementById('bulkDeleteBtn').innerText = "Deleting...";
+        for (let id of selected) await fetch(`/api/data/${id}`, { method: 'DELETE' });
+        document.getElementById('bulkDeleteBtn').innerText = "🗑️ Delete Selected";
+        loadAdminDataAndCharts(); loadStats();
+    }
+
+    async function logout() { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/login.html'; }
+
+    initAdmin();
+</script>
+</body>
+</html>

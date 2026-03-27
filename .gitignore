@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.env
+settings.json
+public/uploads/
+public/wallpapers/
+*.db
+*.sqlite
+.DS_Store
