@@ -78,13 +78,12 @@
 </div>
 
 <script>
-    // NEW: Load the custom background specifically for the Login page
+    // Load custom login background
     document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch('/api/settings/background');
             const data = await res.json();
             if (data.login_bg_url && data.login_bg_url !== '') {
-                // If a custom background is set, hide the glowing orb and apply the image
                 document.getElementById('glowOrb').style.display = 'none';
                 document.body.style.background = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.9)), url('${data.login_bg_url}') no-repeat center center fixed`;
                 document.body.style.backgroundSize = 'cover';

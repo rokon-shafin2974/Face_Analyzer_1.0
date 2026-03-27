@@ -23,6 +23,16 @@
 
         .container { background: var(--card-bg); padding: 40px; border-radius: 20px; width: 100%; max-width: 650px; border: 1px solid var(--border-light); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
         
+        /* View switching logic */
+        .view-section { display: none; animation: fadeIn 0.4s ease-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Floating Options Grid */
+        .selection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
+        .floating-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-light); border-radius: 16px; padding: 30px 20px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .floating-card:hover { border-color: var(--primary); transform: translateY(-5px); background: rgba(99, 102, 241, 0.05); }
+
         .header-section { text-align: center; margin-bottom: 40px; }
         h2 { margin: 0 0 10px 0; font-size: 2rem; letter-spacing: -1px; font-weight: 700; background: linear-gradient(to right, #fff, #a1a1aa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         p.subtitle { color: var(--text-muted); font-size: 0.95rem; margin: 0; }
@@ -32,7 +42,7 @@
         .badge-manual { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.2); }
 
         .form-group { margin-bottom: 25px; }
-        label.field-label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.85rem; color: #d4d4d8; }
+        label.field-label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.85rem; color: #d4d4d8; text-align: left; }
         
         input[type="text"], input[type="number"], .search-bar { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-light); background: #18181b; color: white; box-sizing: border-box; font-size: 0.95rem; transition: 0.2s; font-family: inherit; }
         input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
@@ -44,10 +54,20 @@
         .btn-main { width: 100%; padding: 14px; border: none; border-radius: 10px; background: white; color: black; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: 0.2s; font-family: inherit; margin-top: 10px; }
         .btn-main:hover { background: #e4e4e7; transform: translateY(-1px); }
         .btn-main:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-outline { padding: 8px 16px; font-size: 0.85rem; border: 1px solid var(--border-light); background: transparent; color: white; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-outline:hover { background: rgba(255,255,255,0.05); }
 
         #manual-rating-wizard { display: none; flex-direction: column; align-items: center; background: #18181b; padding: 30px; border-radius: 12px; border: 1px solid var(--border-light); text-align: center; margin-top: 20px; }
         #current-rating-image { max-width: 100%; max-height: 280px; border-radius: 8px; margin: 0 auto 20px auto; display: block; object-fit: contain; }
-        .live-average-box { margin-top: 20px; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-light); border-radius: 8px; color: #e4e4e7; font-size: 0.9rem; font-weight: 500; display: none; width: 100%; box-sizing: border-box;}
+
+        /* 🌟 MODERN STATUS WIDGET CSS 🌟 */
+        .modern-status-widget { background: rgba(0,0,0,0.4); border: 1px solid var(--border-light); border-radius: 16px; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; margin: 20px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.4); backdrop-filter: blur(10px); width: 100%; box-sizing: border-box; }
+        .status-ring { width: 56px; height: 56px; border-radius: 50%; background: conic-gradient(var(--primary) 0%, rgba(255,255,255,0.05) 0); display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.4s ease-out; }
+        .status-ring-inner { width: 48px; height: 48px; background: #18181b; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; font-size: 1.1rem; font-weight: 700; color: white; }
+        .status-info { text-align: left; }
+        .status-title { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 4px; }
+        .status-subtitle { font-size: 0.95rem; color: #e4e4e7; font-weight: 500; }
+        .status-badge { background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; color: var(--primary); font-weight: 600; letter-spacing: 0.5px; }
 
         #recent-gallery-section { width: 100%; max-width: 1000px; margin: 60px auto 0 auto; display: none; }
         .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 25px; }
@@ -68,42 +88,114 @@
 </nav>
 
 <div class="container">
-    <div class="header-section">
-        <h2>Analysis Studio</h2>
-        <p class="subtitle">Upload media to generate standardized AI metrics.</p>
-        <div id="modeBadge" class="badge">Loading Mode...</div>
+    <div id="selectionView" class="view-section active">
+        <div class="header-section">
+            <h2>Analysis Studio</h2>
+            <p class="subtitle">Select your workflow to begin evaluating images.</p>
+            <div id="modeBadge" class="badge">Loading Mode...</div>
+        </div>
+        <div class="selection-grid">
+            <div class="floating-card" onclick="showView('uploadView')">
+                <div style="font-size: 2.5rem; margin-bottom: 10px;">📤</div>
+                <h3 style="margin: 0 0 5px 0;">Direct Rating</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Upload an image and process it immediately.</p>
+            </div>
+            <div class="floating-card" onclick="loadFolders()">
+                <div style="font-size: 2.5rem; margin-bottom: 10px;">📥</div>
+                <h3 style="margin: 0 0 5px 0;">Pending Queue</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Rate pre-uploaded folders one by one.</p>
+            </div>
+        </div>
     </div>
 
-    <form id="ratingForm">
-        <div class="form-group">
-            <label class="field-label">Subject Identification</label>
-            <input type="text" id="subjectName" required placeholder="Enter full name or ID">
+    <div id="uploadView" class="view-section">
+        <button class="btn-outline" onclick="showView('selectionView')" style="margin-bottom: 25px;">⬅ Back to Menu</button>
+        <div class="header-section" style="margin-bottom: 30px;">
+            <h2 style="font-size: 1.6rem;">Direct Rating</h2>
         </div>
-
-        <div class="form-group">
-            <label class="field-label">Media Upload</label>
-            <label class="upload-dropzone" for="imageInput" id="dropzoneContainer">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 10px; color: var(--text-muted);"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                <span style="font-weight: 500; font-size: 0.95rem;">Click or drag images here</span>
-                <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">JPG, PNG up to 10MB</span>
-                <input type="file" id="imageInput" multiple accept="image/*" style="display: none;" required>
-                <div id="fileCount" class="file-count-badge" style="display: none;">0 files selected</div>
-            </label>
-        </div>
-
-        <div id="manual-rating-wizard">
-            <h4 style="margin-top: 0; margin-bottom: 20px; color: var(--text-muted); font-weight: 500; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Image <span id="currentImageNum">1</span> of <span id="totalImageNum">X</span></h4>
-            <img id="current-rating-image" src="" alt="Preview">
-            <div class="form-group" style="width: 100%; text-align: left;">
-                <label class="field-label">Manual Score</label>
-                <input type="number" id="currentManualScore" step="0.1" min="1" max="10" placeholder="0.0 - 10.0">
+        <form id="ratingForm">
+            <div class="form-group">
+                <label class="field-label">Subject Identification</label>
+                <input type="text" id="subjectName" required placeholder="Enter full name or ID">
             </div>
-            <button type="button" id="nextImageBtn" class="btn-main" style="background: var(--primary); color: white;">Save & Next</button>
-            <div id="liveAverageDisplay" class="live-average-box">Session Average: <span id="liveAvgValue" style="float: right; font-weight: bold; color: white;">0.00</span></div>
-        </div>
 
-        <button type="submit" id="mainSubmitBtn" class="btn-main">Initialize Analysis</button>
-    </form>
+            <div class="form-group">
+                <label class="field-label">Media Upload</label>
+                <label class="upload-dropzone" for="imageInput" id="dropzoneContainer">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 10px; color: var(--text-muted);"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <span style="font-weight: 500; font-size: 0.95rem;">Click or drag images here</span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">JPG, PNG up to 10MB</span>
+                    <input type="file" id="imageInput" multiple accept="image/*" style="display: none;" required>
+                    <div id="fileCount" class="file-count-badge" style="display: none;">0 files selected</div>
+                </label>
+            </div>
+
+            <div id="manual-rating-wizard">
+                <h4 style="margin-top: 0; margin-bottom: 20px; color: var(--text-muted); font-weight: 500; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Image <span id="currentImageNum">1</span> of <span id="totalImageNum">X</span></h4>
+                <img id="current-rating-image" src="" alt="Preview">
+                
+                <div class="modern-status-widget" id="statusWidget-direct">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div class="status-ring" id="statusRing-direct">
+                            <div class="status-ring-inner" id="statusAvgDisplay-direct">0.0</div>
+                        </div>
+                        <div class="status-info">
+                            <div class="status-title">Session Average</div>
+                            <div class="status-subtitle" id="statusSubtitle-direct">Ready to rate</div>
+                        </div>
+                    </div>
+                    <div class="status-badge">DIRECT</div>
+                </div>
+
+                <div class="form-group" style="width: 100%; text-align: left;">
+                    <label class="field-label">Manual Score</label>
+                    <input type="number" id="currentManualScore" step="0.1" min="1" max="10" placeholder="0.0 - 10.0">
+                </div>
+                <button type="button" id="nextImageBtn" class="btn-main" style="background: var(--primary); color: white;">Save & Next</button>
+            </div>
+
+            <button type="submit" id="mainSubmitBtn" class="btn-main">Initialize Analysis</button>
+        </form>
+    </div>
+
+    <div id="folderListView" class="view-section">
+        <button class="btn-outline" onclick="showView('selectionView')" style="margin-bottom: 25px;">⬅ Back to Menu</button>
+        <div class="header-section" style="margin-bottom: 20px;">
+            <h2 style="font-size: 1.6rem;">Pending Folders</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Select a subject to process their image batch.</p>
+        </div>
+        <div id="foldersContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
+    </div>
+
+    <div id="carouselView" class="view-section">
+        <button class="btn-outline" onclick="loadFolders()" style="margin-bottom: 25px;">⬅ Back to Folders</button>
+        <div style="text-align: center;">
+            <h3 id="carouselTitle" style="margin-top: 0; color: var(--primary); font-size: 1.5rem;">Folder: Name</h3>
+            <p id="carouselCounter" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; font-weight: 500;">Image 1 of 10</p>
+            
+            <img id="carouselImage" src="" style="max-width: 100%; height: 350px; object-fit: contain; border-radius: 12px; margin-bottom: 25px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-light);">
+            
+            <div class="modern-status-widget" id="statusWidget-queue" style="margin-top: 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="status-ring" id="statusRing-queue">
+                        <div class="status-ring-inner" id="statusAvgDisplay-queue">0.0</div>
+                    </div>
+                    <div class="status-info">
+                        <div class="status-title">Folder Average</div>
+                        <div class="status-subtitle" id="statusSubtitle-queue">Ready to rate</div>
+                    </div>
+                </div>
+                <div class="status-badge">QUEUE</div>
+            </div>
+
+            <div id="carouselManualDiv" style="display: none; margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.85rem; color: #d4d4d8;">Manual Score (1.0 - 10.0)</label>
+                <input type="number" id="carouselRating" step="0.1" min="1" max="10" placeholder="e.g. 8.5" style="width: 150px; text-align: center; margin: 0 auto; display: block; padding: 15px; border-radius: 10px; border: 1px solid var(--border-light); background: #18181b; color: white;">
+            </div>
+            
+            <button class="btn-main" id="carouselSubmitBtn" onclick="submitCarouselRating()" style="width: 100%; max-width: 300px; margin: 0 auto;">Process Image</button>
+        </div>
+    </div>
 </div>
 
 <div id="recent-gallery-section">
@@ -116,20 +208,71 @@
 
 <script>
     let isManualMode = false; let compressedFiles = []; let manualRatingsArray = []; let currentRatingIndex = 0; let allGalleryData = [];
+    let currentFolderData = { name: '', images: [], currentIndex: 0 };
+
+    // 🌟 UNIFIED MODERN STATUS WIDGET LOGIC 🌟
+    let ratingStats = { direct: { total: 0, count: 0 }, queue: { total: 0, count: 0 } };
+
+    function updateModernStatus(mode, newRating) {
+        if (newRating !== undefined) {
+            ratingStats[mode].total += parseFloat(newRating);
+            ratingStats[mode].count += 1;
+        }
+
+        const count = ratingStats[mode].count;
+        const avg = count === 0 ? 0.0 : (ratingStats[mode].total / count).toFixed(1);
+        const percentage = (avg / 10) * 100;
+
+        document.getElementById(`statusAvgDisplay-${mode}`).innerText = avg;
+        document.getElementById(`statusRing-${mode}`).style.background = `conic-gradient(var(--primary) ${percentage}%, rgba(255,255,255,0.05) 0)`;
+        document.getElementById(`statusSubtitle-${mode}`).innerText = count === 0 ? 'Waiting for ratings...' : `Rated ${count} image${count !== 1 ? 's' : ''}`;
+
+        if (newRating !== undefined) {
+            const ring = document.getElementById(`statusRing-${mode}`);
+            ring.style.transform = 'scale(1.1)';
+            ring.style.boxShadow = '0 0 20px var(--primary)';
+            setTimeout(() => {
+                ring.style.transform = 'scale(1)';
+                ring.style.boxShadow = 'none';
+            }, 300);
+        }
+    }
+
+    function resetStats(mode) {
+        ratingStats[mode].total = 0;
+        ratingStats[mode].count = 0;
+        updateModernStatus(mode);
+    }
+    // ------------------------------------------
 
     async function initializePage() {
         try {
             const bgRes = await fetch('/api/settings/background'); const bgData = await bgRes.json();
             if (bgData.bg_url) { document.body.style.background = `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9)), url('${bgData.bg_url}') no-repeat center center fixed`; document.body.style.backgroundSize = 'cover'; }
-            const res = await fetch('/api/settings/mode'); if (res.status === 401) { window.location.href = '/login.html'; return; }
-            const data = await res.json(); isManualMode = (data.mode === 'manual');
+            
+            const res = await fetch('/api/settings/mode'); 
+            if (res.status === 401) { window.location.href = '/login.html'; return; }
+            const data = await res.json(); 
+            isManualMode = (data.mode === 'manual');
             if (data.role === 'admin') document.getElementById('adminPanelBtn').style.display = 'block';
-            const badge = document.getElementById('modeBadge'); badge.className = isManualMode ? 'badge badge-manual' : 'badge badge-ai'; badge.innerHTML = isManualMode ? '✍️ Manual Entry Mode' : '🤖 Cloud AI Mode';
-            const galRes = await fetch('/api/settings/gallery'); if(galRes.ok) { const galData = await galRes.json(); if(galData.visible) document.getElementById('recent-gallery-section').style.display = 'block'; }
+            
+            const badge = document.getElementById('modeBadge'); 
+            badge.className = isManualMode ? 'badge badge-manual' : 'badge badge-ai'; 
+            badge.innerHTML = isManualMode ? '✍️ Manual Entry Mode' : '🤖 Cloud AI Mode';
+
+            if (isManualMode) document.getElementById('carouselManualDiv').style.display = 'block';
+
+            const galRes = await fetch('/api/settings/gallery'); 
+            if(galRes.ok) { const galData = await galRes.json(); if(galData.visible) document.getElementById('recent-gallery-section').style.display = 'block'; }
         } catch (e) { console.error(e); }
     }
-    initializePage();
 
+    function showView(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    }
+
+    // --- DIRECT RATING LOGIC ---
     document.getElementById('imageInput').addEventListener('change', async function(e) {
         const countBadge = document.getElementById('fileCount'); countBadge.style.display = 'inline-block'; countBadge.innerText = "Processing...";
         compressedFiles = [];
@@ -148,13 +291,22 @@
         e.preventDefault();
         if (compressedFiles.length === 0) return alert("Please select media.");
         if (isManualMode && document.getElementById('manual-rating-wizard').style.display !== 'flex') {
-            document.getElementById('mainSubmitBtn').style.display = 'none'; document.getElementById('dropzoneContainer').style.display = 'none'; document.getElementById('manual-rating-wizard').style.display = 'flex'; currentRatingIndex = 0; manualRatingsArray = []; showNextImageToRate();
+            document.getElementById('mainSubmitBtn').style.display = 'none'; 
+            document.getElementById('dropzoneContainer').style.display = 'none'; 
+            document.getElementById('manual-rating-wizard').style.display = 'flex'; 
+            currentRatingIndex = 0; manualRatingsArray = []; 
+            resetStats('direct'); // Reset widget for new direct batch
+            showNextImageToRate();
         } else if (!isManualMode) submitDataToServer();
     });
 
     function showNextImageToRate() {
         if (currentRatingIndex >= compressedFiles.length) { submitDataToServer(); return; }
-        document.getElementById('currentImageNum').innerText = currentRatingIndex + 1; document.getElementById('totalImageNum').innerText = compressedFiles.length; document.getElementById('current-rating-image').src = URL.createObjectURL(compressedFiles[currentRatingIndex]); document.getElementById('currentManualScore').value = ''; document.getElementById('currentManualScore').focus();
+        document.getElementById('currentImageNum').innerText = currentRatingIndex + 1; 
+        document.getElementById('totalImageNum').innerText = compressedFiles.length; 
+        document.getElementById('current-rating-image').src = URL.createObjectURL(compressedFiles[currentRatingIndex]); 
+        document.getElementById('currentManualScore').value = ''; 
+        document.getElementById('currentManualScore').focus();
     }
 
     document.getElementById('currentManualScore').addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('nextImageBtn').click(); } });
@@ -162,19 +314,130 @@
     document.getElementById('nextImageBtn').addEventListener('click', function() {
         const score = parseFloat(document.getElementById('currentManualScore').value);
         if (isNaN(score) || score < 1 || score > 10) return alert("Valid score 1.0-10.0 required.");
+        
         manualRatingsArray.push(score);
-        document.getElementById('liveAvgValue').innerText = (manualRatingsArray.reduce((a, b) => a + b, 0) / manualRatingsArray.length).toFixed(2);
-        document.getElementById('liveAverageDisplay').style.display = 'block';
+        updateModernStatus('direct', score); // Update UI widget immediately
+
         currentRatingIndex++; showNextImageToRate();
     });
 
     async function submitDataToServer() {
         const formData = new FormData(); formData.append('name', document.getElementById('subjectName').value);
         compressedFiles.forEach(file => formData.append('images', file)); manualRatingsArray.forEach(rating => formData.append('ratings', rating));
-        document.getElementById('manual-rating-wizard').style.display = 'none'; document.getElementById('mainSubmitBtn').style.display = 'block'; document.getElementById('mainSubmitBtn').disabled = true; document.getElementById('mainSubmitBtn').innerText = 'Processing Sequence...';
-        try { const response = await fetch('/api/rate', { method: 'POST', body: formData }); if (response.ok) { window.location.reload(); } else { alert("Upload error."); document.getElementById('mainSubmitBtn').disabled = false; document.getElementById('mainSubmitBtn').innerText = 'Initialize Analysis'; } } catch (err) { alert("Network Error."); }
+        
+        document.getElementById('manual-rating-wizard').style.display = 'none'; 
+        document.getElementById('mainSubmitBtn').style.display = 'block'; 
+        document.getElementById('mainSubmitBtn').disabled = true; 
+        document.getElementById('mainSubmitBtn').innerText = 'Processing Sequence...';
+        
+        try { 
+            const response = await fetch('/api/rate', { method: 'POST', body: formData }); 
+            if (response.ok) { window.location.reload(); } else { alert("Upload error."); document.getElementById('mainSubmitBtn').disabled = false; document.getElementById('mainSubmitBtn').innerText = 'Initialize Analysis'; } 
+        } catch (err) { alert("Network Error."); }
     }
 
+    // --- FOLDER QUEUE CAROUSEL LOGIC ---
+    async function loadFolders() {
+        showView('folderListView');
+        const container = document.getElementById('foldersContainer');
+        container.innerHTML = "<p style='color: var(--text-muted); text-align: center;'>Loading folders...</p>";
+
+        try {
+            const res = await fetch('/api/pending/folders');
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            
+            if (data.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 30px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed var(--border-light); color: var(--text-muted);">Queue is empty! 🎉</div>`;
+                return;
+            }
+
+            container.innerHTML = data.map(f => `
+                <div onclick="startFolderRating(${f.id}, '${f.name.replace(/'/g, "\\'")}')" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-light); padding: 15px 20px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;" onmouseover="this.style.borderColor='var(--primary)';" onmouseout="this.style.borderColor='var(--border-light)';">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 1.5rem;">📁</span>
+                        <span style="font-weight: 600;">${f.name}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 0.8rem; background: var(--primary); color: white; padding: 2px 8px; border-radius: 12px;">${f.image_count} images</span>
+                        <span style="color: var(--text-muted);">➡️</span>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            container.innerHTML = "<p style='color: #ef4444; text-align: center;'>Failed to load folders.</p>";
+        }
+    }
+
+    async function startFolderRating(id, name) {
+        try {
+            const res = await fetch(`/api/pending/folders/${id}/images`);
+            const images = await res.json();
+            if(images.length === 0) return alert("This folder is empty.");
+            
+            currentFolderData = { name: name, images: images, currentIndex: 0 };
+            resetStats('queue'); // Reset widget for new folder queue
+            
+            renderCarouselImage();
+            showView('carouselView');
+        } catch (e) {
+            alert("Failed to load images.");
+        }
+    }
+
+    function renderCarouselImage() {
+        const { name, images, currentIndex } = currentFolderData;
+        document.getElementById('carouselTitle').innerText = `Folder: ${name}`;
+        document.getElementById('carouselCounter').innerText = `Image ${currentIndex + 1} of ${images.length}`;
+        document.getElementById('carouselImage').src = images[currentIndex].image_path;
+        document.getElementById('carouselRating').value = '';
+        
+        if(isManualMode) setTimeout(() => document.getElementById('carouselRating').focus(), 100);
+    }
+
+    document.getElementById('carouselRating').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); document.getElementById('carouselSubmitBtn').click(); }
+    });
+
+    async function submitCarouselRating() {
+        const img = currentFolderData.images[currentFolderData.currentIndex];
+        const rating = document.getElementById('carouselRating').value;
+        
+        if (isManualMode && (!rating || isNaN(rating) || rating < 1 || rating > 10)) {
+            return alert("Please enter a valid rating between 1.0 and 10.0.");
+        }
+
+        const btn = document.getElementById('carouselSubmitBtn');
+        btn.innerText = "Processing..."; btn.disabled = true;
+
+        try {
+            const res = await fetch('/api/pending/rate_single', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ image_id: img.id, folder_name: currentFolderData.name, rating: rating })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.status === 'success') {
+                updateModernStatus('queue', data.rating); // Update UI widget
+
+                currentFolderData.currentIndex++;
+                if (currentFolderData.currentIndex >= currentFolderData.images.length) {
+                    setTimeout(() => {
+                        alert("Batch Complete! 🎉 All images for this subject have been rated.");
+                        loadFolders(); loadGallery(); 
+                    }, 500);
+                } else {
+                    renderCarouselImage(); 
+                }
+            } else {
+                alert("Failed to save rating.");
+            }
+        } catch(e) { alert("Network error."); }
+        
+        btn.innerText = "Process Image"; btn.disabled = false;
+    }
+
+    // --- RECENT GALLERY ---
     async function loadGallery() {
         try { const res = await fetch('/api/data'); if (!res.ok) return; allGalleryData = await res.json(); renderGallery(allGalleryData); } catch (err) { console.error(err); }
     }
@@ -206,7 +469,7 @@
         renderGallery(filtered); 
     });
 
-    document.addEventListener('DOMContentLoaded', loadGallery);
+    document.addEventListener('DOMContentLoaded', () => { initializePage(); loadGallery(); });
     async function logout() { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/login.html'; }
 </script>
 </body>
